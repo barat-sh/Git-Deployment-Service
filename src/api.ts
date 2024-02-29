@@ -7,12 +7,13 @@ import cors from "cors";
 import simpleGit from "simple-git";
 import { generateID } from "./utils";
 import path from "path";
-import { createUploadPath } from "./filehandler";
-import { uploadToS3 } from "./awsService";
+import { getAllFiles } from "./filehandler";
+import { uploadFile } from "./awsService";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
 app.get("/", (req, res) => {
   res.send("hola");
 });
@@ -21,16 +22,15 @@ app.post("/deploy", async (req: Request, res: Response) => {
   const URL = req.body.repoURL;
   const id = generateID();
   // cloning repo
-  try {
-    await simpleGit().clone(URL, path.join(__dirname, `repoOutput/${id}`));
-  } catch (error) {
-    res.json({ GitCloneError: error });
-  }
-  // getting repo path
-  const paths = path.join(__dirname, `repoOutput/${id}`);
+  await simpleGit().clone(URL, path.join(__dirname, `repoOutput/${id}`));
   // getting all repo files
-  const files = createUploadPath(paths);
+  const files = getAllFiles(path.join(__dirname, `repoOutput/${id}`));
 
+  // uploading to R2
+  files.forEach(async (file) => {
+    await uploadToS3(file.slice(__dirname.length + 1), file);
+  });
+  // await new Promise((resolve) => setTimeout(resolve, 500));
   // files.forEach(async (file) => {
   // await uploadToS3(file.slice(__dirname.length + 1), file);
   //});

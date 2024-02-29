@@ -1,18 +1,16 @@
 import fs from "fs";
 import path from "path";
 
-export const createUploadPath = (folderPath: string) => {
+export const getAllFiles = (folderPath: string) => {
   let response: string[] = [];
 
-  // gives file in current folder
-  const allFiles = fs.readdirSync(folderPath);
-
-  allFiles.forEach((file) => {
-    const filePath = path.join(folderPath, file);
-    if (fs.statSync(filePath).isFile()) {
-      response.push(filePath);
+  const allFilesAndFolders = fs.readdirSync(folderPath);
+  allFilesAndFolders.forEach((file) => {
+    const fullFilePath = path.join(folderPath, file);
+    if (fs.statSync(fullFilePath).isDirectory()) {
+      response = response.concat(getAllFiles(fullFilePath));
     } else {
-      response = response.concat(createUploadPath(filePath));
+      response.push(fullFilePath);
     }
   });
   return response;
