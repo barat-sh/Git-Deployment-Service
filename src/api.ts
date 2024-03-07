@@ -24,13 +24,24 @@ app.post("/deploy", async(req:Request,res:Response)=>{
     const files = getAllFiles(path.join(__dirname, `outputCloned/${sessionID}`))
     console.log(files)
 
-    files.forEach(async file => {
-        console.log(file.slice(__dirname.length + 1));
-        await uploadFileToR2(file.slice(__dirname.length + 1), file);
-    })
+    try{
+        files.forEach(async file => {
+            await uploadFileToR2(file.slice(__dirname.length + 1), file);
+        })
+        try{
+            publisher.lPush("build-queue", sessionID);
+            console.log("Added to Redis-queue...")
+        }catch(err){
+            console.log("error while publishing to redis")
+        }
+    }catch(err){
+        console.log("Error while Uploading files", err)
+    }finally{
+        console.log("finished uploading to R2...")
+    }
 
     // pushing to queue
-    publisher.lPush("build-queue", sessionID);
+    
     res.json({repoURL:repoURL, sessionID: sessionID})
 })
 app.listen(3001, ()=>{
