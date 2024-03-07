@@ -25,12 +25,6 @@ export const uploadFileToR2 = async(fileName: string, localFilePath: string) => 
         Body: fileContent,
     };
     console.log(input)
-    try{
-        const response = await r2Client.send(new PutObjectCommand(input));
-        console.log("donr " + response)
-    }catch(err){
-        console.log(err);
-    }
     r2Client.send(new PutObjectCommand(input), (err, res)=>{
         if (err) {
             console.log("Error uploading data:",err)
