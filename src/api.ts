@@ -12,6 +12,9 @@ app.use(express.json());
 const publisher = createClient();
 publisher.connect();
 
+const subscriber = createClient();
+subscriber.connect();
+
 app.post("/deploy", async(req:Request,res:Response)=>{
     const repoURL = req.body.repoURL;
     console.log(repoURL);
@@ -28,21 +31,33 @@ app.post("/deploy", async(req:Request,res:Response)=>{
         files.forEach(async file => {
             await uploadFileToR2(file.slice(__dirname.length + 1), file);
         })
-        try{
-            publisher.lPush("build-queue", sessionID);
-            console.log("Added to Redis-queue...")
-        }catch(err){
-            console.log("error while publishing to redis")
-        }
+        setTimeout(async()=>{
+            try{
+                await publisher.lPush("build-queue", sessionID);
+                console.log("Added to Redis-queue...")
+            }catch(err){
+                console.log("error while publishing to redis")
+            }
+        }, 30000);
     }catch(err){
         console.log("Error while Uploading files", err)
     }finally{
         console.log("finished uploading to R2...")
     }
 
+    await publisher.hSet("status", sessionID, "UPLOAD")
+
     // pushing to queue
     
     res.json({repoURL:repoURL, sessionID: sessionID})
+})
+
+app.get("/status",async (req,res)=>{
+    const id = req.query.id;
+    const response = await subscriber.hGet("status", id as string);
+    res.json({
+        status:response
+    })
 })
 app.listen(3001, ()=>{
     console.log("server hiiting....")
