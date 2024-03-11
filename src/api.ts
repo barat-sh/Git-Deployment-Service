@@ -8,6 +8,7 @@ import { uploadFileToR2 } from "./config/aws";
 import { createClient } from "redis";
 
 const app = express()
+app.use(cors());
 app.use(express.json());
 const publisher = createClient();
 publisher.connect();
