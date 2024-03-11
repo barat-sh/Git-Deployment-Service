@@ -1,0 +1,12 @@
+Build-service/node_modules
+Build-service/.env
+Build-service/build
+Build-service/src/outputCloned
+Request-Handler-Service/node_modules
+Request-Handler-Service/.env
+Request-Handler-Service/src/outputCloned
+Request-Handler-Service/build
+Upload-service/.env
+Upload-service/src/outputCloned
+Upload-service/build
+Upload-Service/node_modules
