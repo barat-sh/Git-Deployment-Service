@@ -12,11 +12,9 @@ const app = express()
 app.use(cors());
 app.use(express.json());
 dotenv.config();
-const PORT = process.env.PORT;
-
 
 const client = createClient({
-    url: process.env.EXTERNAL_REDIS_KEY
+    url: process.env.INTERNAL_REDIS_KEY
   });
 const initiateRedisConnection = async() => {
     client.on('error', (err) => console.log('Redis Client Error', err));
@@ -69,7 +67,7 @@ app.get("/status",async (req,res)=>{
         status:response
     })
 })
-app.listen(PORT, ()=>{
+app.listen(process.env.PORT || 3001, ()=>{
     initiateRedisConnection()
-    console.log(`server hiiting at ${PORT}...`)
+    console.log(`server hiiting at ${process.env.PORT || 3001}...`)
 })

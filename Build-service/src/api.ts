@@ -9,7 +9,7 @@ const app = express();
 
 
 const client = createClient({
-    url: process.env.EXTERNAL_REDIS_KEY
+    url: process.env.INTERNAL_REDIS_KEY
   });
 const initiateRedisConnection = async() => {
     client.on('error', (err) => console.log('Redis Client Error', err));
@@ -38,7 +38,7 @@ const main = async() => {
 }
 
 
-app.listen(3002, async()=>{
+app.listen(process.env.PORT || 3002, async()=>{
     await initiateRedisConnection()
     console.log("server hitting..")
     main()
