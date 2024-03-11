@@ -11,13 +11,19 @@ import { createClient } from "redis";
 const app = express()
 app.use(cors());
 app.use(express.json());
-const publisher = createClient();
-publisher.connect();
 dotenv.config();
 const PORT = process.env.PORT;
 
-const subscriber = createClient();
-subscriber.connect();
+
+const client = createClient({
+    url: process.env.EXTERNAL_REDIS_KEY
+  });
+const initiateRedisConnection = async() => {
+    client.on('error', (err) => console.log('Redis Client Error', err));
+      
+    await client.connect();
+    console.log("redis connected...")
+}
 
 app.post("/deploy", async(req:Request,res:Response)=>{
     const repoURL = req.body.repoURL;
@@ -37,7 +43,7 @@ app.post("/deploy", async(req:Request,res:Response)=>{
         })
         setTimeout(async()=>{
             try{
-                await publisher.lPush("build-queue", sessionID);
+                await client.lPush("build-queue", sessionID);
                 console.log("Added to Redis-queue...")
             }catch(err){
                 console.log("error while publishing to redis")
@@ -46,10 +52,10 @@ app.post("/deploy", async(req:Request,res:Response)=>{
     }catch(err){
         console.log("Error while Uploading files", err)
     }finally{
-        console.log("finished uploading to R2...")
+        console.log("finished uploading files...")
     }
 
-    await publisher.hSet("status", sessionID, "UPLOAD")
+    await client.hSet("status", sessionID, "UPLOAD")
 
     // pushing to queue
     
@@ -58,11 +64,12 @@ app.post("/deploy", async(req:Request,res:Response)=>{
 
 app.get("/status",async (req,res)=>{
     const id = req.query.id;
-    const response = await subscriber.hGet("status", id as string);
+    const response = await client.hGet("status", id as string);
     res.json({
         status:response
     })
 })
 app.listen(PORT, ()=>{
+    initiateRedisConnection()
     console.log(`server hiiting at ${PORT}...`)
 })
