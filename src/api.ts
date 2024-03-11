@@ -5,6 +5,7 @@ import { generate } from "./config/store";
 import { cloneGitRepository } from "./gitUtils";
 import { getAllFiles } from "./config/files";
 import { uploadFileToR2 } from "./config/aws";
+import * as dotenv from 'dotenv';
 import { createClient } from "redis";
 
 const app = express()
@@ -12,6 +13,8 @@ app.use(cors());
 app.use(express.json());
 const publisher = createClient();
 publisher.connect();
+dotenv.config();
+const PORT = process.env.PORT;
 
 const subscriber = createClient();
 subscriber.connect();
@@ -60,6 +63,6 @@ app.get("/status",async (req,res)=>{
         status:response
     })
 })
-app.listen(3001, ()=>{
-    console.log("server hiiting....")
+app.listen(PORT, ()=>{
+    console.log(`server hiiting at ${PORT}...`)
 })
