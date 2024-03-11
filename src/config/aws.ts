@@ -19,7 +19,7 @@ const r2_params = {
 
 const listObjectsCommand = new ListBucketsCommand(r2_params);
 export const uploadFileToR2 = async(fileName: string, localFilePath: string) => {
-    console.log("called");
+    // console.log("called");
     const fileContent = fs.readFileSync(localFilePath);
     const input = {
         Bucket: process.env.R2_BUCKET_NAME,
@@ -32,6 +32,6 @@ export const uploadFileToR2 = async(fileName: string, localFilePath: string) => 
             console.log("Error uploading data:",err)
             console.log("r2 endpoint", r2Client.config.endpoint)
         }
-        console.log("successl", res)        
+        console.log("successl", res)
     })
 }
